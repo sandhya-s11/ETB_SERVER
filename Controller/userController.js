@@ -10,7 +10,7 @@ export const registerUser = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user with lowercase email
+    // Force lowercase email to avoid case issues
     const user = new User({
       name,
       email: email.toLowerCase(),
@@ -30,7 +30,7 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by lowercase email
+    // Find user using lowercase email
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
@@ -49,10 +49,10 @@ export const loginUser = async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    // Send role inside user object
     res.status(200).json({
       message: "Login successful",
       token,
-      role: user.role,
       user: {
         id: user._id,
         name: user.name,
