@@ -2,28 +2,36 @@ import User from "../Model/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+// REGISTER USER
 export const registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  try {
+    const { name, email, password, role } = req.body;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  const user = new User({
-    name,
-    email,
-    password: hashedPassword,
-    role: role || "user"
-  });
+    // Create user with lowercase email
+    const user = new User({
+      name,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      role: role || "user"
+    });
 
-  await user.save();
-  res.json({ message: "User registered" });
+    await user.save();
+    res.json({ message: "User registered" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-
+// LOGIN USER
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    // Find user by lowercase email
+    const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
       return res.status(400).json({ message: "User not found" });
@@ -57,12 +65,13 @@ export const loginUser = async (req, res) => {
   }
 };
 
+// GET ALL USERS
 export const getUsers = async (req, res) => {
   const users = await User.find();
   res.json(users);
 };
 
-
+// DELETE USER
 export const deleteUser = async (req, res) => {
   await User.findByIdAndDelete(req.params.id);
   res.json({ message: "User deleted" });
